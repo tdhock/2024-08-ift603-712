@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Gradient, entropie croisée et descente de gradient.</title>
+  <meta name="description" content="IFT603 : entropie croisé et gradient">
+
+  <script type="text/javascript"
+    src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  </script>
+
+</head>
+<body><header class="site-header" role="banner">
+
+
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Entropie croisée et descente de gradient pour un réseau de neurones multi-classes linéaire</h1>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+ 
+<h3>Softmax et entropie croisée</h3>
+
+<p>Soit un classifieur linéaire multi-classes constitué d'une couche d'entrée et d'une couche de sortie.  Ce réseau prend en entrée un vecteur <script type="math/tex">\vec x</script>, le multiplie avec une matrice de paramètres <script type="math/tex">W</script> et ajoute un biais <script type="math/tex">\vec b</script>.  Le résultat est un vecteur <script type="math/tex">\vec f</script> à C dimensions où C est le nombre de classes:
+
+
+<script type="math/tex; mode=display">\vec f=W\vec x + \vec b</script>  
+
+
+  C'est ce qu'on appelle le <b>score</b> du réseau. Ainsi, le score de la i-ème
+classe peut être représenté comme suit 
+
+<script type="math/tex; mode=display">f_{i}=W_{i}^T\vec x+b_i</script>  
+
+
+où <script type="math/tex">W_{i}</script> est la i-ème ligne de la matrice   <script type="math/tex">W</script>.
+
+Par la suite, le score de chaque classe passe par la fonction <b> Softmax</b> :
+
+<script type="math/tex; mode=display">S_i=\frac{e^{f_{i}}}{\sum_{j=0}^{C-1}e^{f_{j}}}</script>
+
+qui retourne une valeur entre 0 et 1. La sortie <script type="math/tex">S_i</script> peut être vue comme la probabilité conditionnelle de la i-ème classe car les sorties du Softmax somment à 1.</p>
+
+<p>Supposons maintenant que <script type="math/tex">t</script> est l'étiquette cible du vecteur <script type="math/tex">\vec x</script> (<script type="math/tex">t</script> est un entier entre 0 et <script type="math/tex">C-1</script>). On peut ainsi calculer la fonction de perte (ici l'entropie croisée) comme suit: 
+
+<script type="math/tex; mode=display">L=-\ln(S_{t})</script> 
+
+où <script type="math/tex"> S_{t}</script> est la t-ème sortie du Softmax c-à-d la probabilité prédite par le réseau pour la class cible :
+
+<script type="math/tex; mode=display">S_{t}=\frac{e^{f_{t}}}{\sum_{j=0}^{C-1}e^{f_{j}}}.</script>
+
+Si la probabilité prédite pour la classe cible est 1, alors la perte sera nulle : <script type="math/tex">L=-\ln(1)=0</script>.  À l'inverse, si la probabilité de la classe cible est 0, la perte sera infinie : <script type="math/tex">L=-\ln(0)=\infty </script>. 
+Mentionnons également qu'il est fréquent d'ajouter un terme de régularisation L2 sur les poids. Ce faisant, on obtient pour la paire <script type="math/tex">(\vec x,t) </script> la perte suivante 
+
+<script type="math/tex; mode=display">L=-\ln(S_{t})+\lambda||W||^2</script> 
+
+où <script type="math/tex">\lambda</script> contrôle la force de la régularisation et aide à réduire le sur-apprentissage.  À noter que puisque le biais n'est pas inclue dans <script type="math/tex">W</script>, on réécrira la perte comme</p>
+
+<script type="math/tex; mode=display">L=-\ln(S_{t})+\lambda \left ( ||W||^2 + ||\vec b||^2 \right).</script> 
+
+
+
+<p>Au final, puisque l'ensemble d'entraînement contient <script type="math/tex">N </script> données, la perte sera la moyenne du logarithme des probabilité prédites pour l'ensemble des cibles plus le terme de régularisation :
+
+ <script type="math/tex; mode=display">L_{tot}=-\frac{1}{N} \sum_n^N \ln(S_{t_n}) + \lambda \left ( ||W||^2 + ||\vec b||^2 \right ).</script> </p>
+
+
+<h3>Gradient de l'entropie croisée</h3>
+
+<p>Afin d'opérer une descente de gradient, il faut calculer le gradient de la perte par rapport aux paramètres (et biais)  et ce, à l'aide d'une opération de <b>dérivée en chaîne</b> du type <script type="math/tex">{\frac{\partial p}{\partial t}}={\frac{\partial p}{\partial q}}
+{\frac{\partial q}{\partial t}}</script>.
+ 
+Pour ce faire, on peut réécrire la fonction de perte comme suit <script type="math/tex">L = L_{pred} + L_{reg}</script> où <script type="math/tex">L_{pred}</script> est l'entropie croisée et <script type="math/tex">L_{reg}</script> est la norme L2 des paramètres du réseau.  Ainsi, nous obtenons les dérivées partielles que voici:</p>
+
+<script type="math/tex; mode=display">
+\frac{\partial L}{\partial W_i} = \frac{\partial L_{pred}}{\partial W_i}+\frac{\partial L_{reg}}{\partial W_i}\\ ={\frac{\partial L_{pred}}{\partial S_{t}}}
+{\frac{\partial S_{t}}{\partial f_i}}{\frac{\partial f_i}{\partial W_i}}+\frac{\partial L_{reg}}{\partial W_i}</script>
+
+où 
+
+<script type="math/tex; mode=display">{\frac{\partial L_{reg}}{\partial W_{i}}}={\frac{\lambda\partial \left ( ||W||^2 + ||\vec b||^2 \right)}{\partial W_{i}}}={2\lambda W_i}</script>
+
+et
+
+<script type="math/tex; mode=display">{\frac{\partial L_{pred}}{\partial S_{t}}}={\frac{\partial (-\ln S_{t})}{\partial S_{t}}}={-\frac{1}{S_{t}}}</script>
+
+<script type="math/tex; mode=display">{\frac{\partial f_i}{\partial W_i}}={\frac{\partial (W_{i}^T \vec x+b_i)}{\partial W_i}}
+={\vec x}</script>
+
+<p>Pour la dérivée partielle <script type="math/tex">\frac{\partial S_{t}}{\partial f_i}</script> nous utiliserons la règle en vertue de laquelle la dérivée par rapport à x d'une fonction <script type="math/tex">f(x)=\frac{g(x)}{h(x)}</script> égale à
+<script type="math/tex">f'(x)=\frac{g'(x)h(x)-h'(x)g(x)}{[h(x)]^2}</script>. Nous devons également considérer deux cas de figure soit <script type="math/tex">i=t</script> et  <script type="math/tex">i\neq t</script>.</p>
+
+<p>
+Pour <script type="math/tex">i=t</script> on obtient:
+
+<script type="math/tex; mode=display">{\frac{\partial S_{t}}{\partial f_i}}=\frac{\partial
+ \left ( \frac{e^{f_{t}}}{\sum_{j=1}^{C-1}e^{f_{j}}} \right ) }{\partial f_i}  \\ =\frac{(e^{f_{t}})'\sum_{j=0}^{C-1}e^{f_{j}}
+-(\sum_{j=0}^{C-1}e^{f_{j}})'e^{f_{t}}}{[\sum_{j=0}^{C-1}e^{f_{j}}]^2}</script>
+
+<script type="math/tex; mode=display">=\frac{e^{f_{t}}\sum_{j=0}^{C-1}e^{f_{j}}-e^{f_{i}}e^{f_{t}}}{[\sum_{j=0}^{C-1}e^{f_{j}}]^2} \\
+=\frac{e^{f_{t}}}{\sum_{j=0}^{C-1}e^{f_{j}}}\frac{\sum_{j=0}^{C-1}e^{f_{j}}-e^{f_{i}}}{\sum_{j=0}^{C-1}e^{f_{j}}} \\ =S_{t}(1-S_{i})</script>
+
+<p>Pour <script type="math/tex">i \neq t</script>, on obtient:</p>
+
+<script type="math/tex; mode=display">{\frac{\partial S_{t}}{\partial f_i}}=\frac{\partial
+ \left ( \frac{e^{f_{t}}}{\sum_{j=0}^{C-1}e^{f_{j}}} \right ) }{\partial f_i}\\ =\frac{(e^{f_{t}})'\sum_{j=0}^{C-1}e^{f_{j}}
+-(\sum_{j=0}^{C-1}e^{f_{j}})'e^{f_{t}}}{[\sum_{j=0}^{C-1}e^{f_{j}}]^2}</script>
+
+<script type="math/tex; mode=display">=\frac{0\sum_{j=0}^{C-1}e^{f_{i}}-e^{f_{i}}e^{f_{t}}}{[\sum_{j=0}^{C-1}e^{f_{i}}]^2}
+\\
+=\frac{-e^{f_{i}}e^{f_{t}}}{[\sum_{j=0}^{C-1}e^{f_{i}}]^2}\\
+=-S_iS_t</script>
+
+<p>En combinant le tout, au final on obtient:
+<script type="math/tex; mode=display">% <![CDATA[
+\frac{\partial L}{\partial W_i}=\begin{cases}
+    -\frac{1}{S_t}S_{t}(1-S_{i})\vec x+2\lambda W_i & \text{si $i=t$}\newline
+     -\frac{1}{S_t}(-S_iS_t)\vec x+2\lambda W_i & \text{si $i \neq t$}
+\end{cases}\\=\begin{cases}
+    (S_i-1)\vec x+2\lambda W_i & \text{si $i=t$}\newline
+     S_i\vec x+2\lambda W_i & \text{si $i \neq t$}
+\end{cases} %]]></script></p>
+
+<p>De façon similaire, on peut calculer la dérivée de la perte par rapport au biais en changeant le dernier terme de la dérivée en chaîne. </p>
+
+<script type="math/tex; mode=display">\frac{\partial L}{\partial b_i}={\frac{\partial L_{pred}}{\partial S_{t}}}
+{\frac{\partial S_{t}}{\partial f_i}}{\frac{\partial f_i}{\partial b_i}} + \frac{\partial L_{reg}}{\partial b_i}</script>
+
+<script type="math/tex; mode=display">{\frac{\partial f_i}{\partial b_i}}={\frac{\partial (W_{i}^T \vec x +b_i)}{\partial b_i}}
+=1</script>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\frac{\partial L}{\partial b_i}=\begin{cases}
+    S_i-1 + 2\lambda b_i & \text{si $i=t$}\newline
+     S_i + 2\lambda b_i& \text{si $i \neq t$}
+\end{cases} %]]></script>
+
+Il est à noter que certaines implémentations délaissent le terme  <script type="math/tex"> 2\lambda b_i </script> ne considérant pas le biais comme un paramètre comme les autres.
+</p>
+
+Et finalement, on peut "vectoriser" le gradient en calculant la dérivée de la perte par rapport à la matrice <script type="math/tex">W</script> au complet et par rapport au vecteur  <script type="math/tex">\vec b</script> au complet.  Cela résulte en ceci:
+
+<script type="math/tex; mode=display"> \frac{\partial L}{\partial W}=\nabla_W L= (\vec S-\vec t) \vec{x}^T + 2\lambda W </script>
+<script type="math/tex; mode=display"> \frac{\partial L}{\partial \vec b}= \nabla_{\vec b} L= \vec S-\vec t + 2\lambda \vec b </script>
+
+où <script type="math/tex"> \vec t </script> est un vecteur cible en format "one-hot".
+
+<p>
+Une fois les gradients calculés, on peut enfin lancer la descente de gradient :</p>
+
+<script type="math/tex; mode=display">W = W - \eta \nabla_{W}L</script>
+
+<script type="math/tex; mode=display">\vec b=\vec b-\eta \nabla_{\vec b}L.</script>
+
+Bonne programmation!
+  </div>
+
+
+
+      </div>
+    </main>
+</body>
+
+</html>
+

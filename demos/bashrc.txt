@@ -1,0 +1,9 @@
+alias ls='ls --color=auto -lh'
+
+parse_git_branch() { git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'; }
+
+PS1="[BUR] \w/\[\033[31m\]\$(parse_git_branch)\[\033[00m\] "
+
+bind '"\e[A": history-search-backward'
+bind '"\e[B": history-search-forward'
+
