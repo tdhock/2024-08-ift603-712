@@ -10,14 +10,14 @@ reg.pattern.list <- list(
   constant=function(x)0)
 standard.deviation.vec <- c(
   easy=0.1,
-  hard=1,
+  hard=1.2,
   impossible=5)
 reg.task.list <- list()
 reg.data.list <- list()
 norm01 <- function(z,ref=z)(z-min(ref))/(max(ref)-min(ref))
 for(difficulty in names(standard.deviation.vec)){
   standard.deviation <- standard.deviation.vec[[difficulty]]
-  for(signal in names(reg.pattern.list)){
+  for(signal in names(reg.pattern.list)){ # HI BASIL
     task_id <- paste(signal, difficulty)
     f <- reg.pattern.list[[signal]]
     signal.vec <- f(x.vec)
@@ -206,6 +206,18 @@ if(FALSE){
   signal + difficulty + train_size + algorithm ~ .,
   list(mean, sd, length, min, max),
   value.var=c("regr.mse")))
+reg.bench.test <- dcast(
+  reg.bench.score[, log10.mse := log10(regr.mse)],
+  signal + difficulty + train_size + test.fold ~ algorithm,
+  value.var=c("log10.mse"))
+(test.proposed <- reg.bench.test[, {
+  paired <- t.test(rpart, featureless, alternative="two.sided", paired=TRUE)
+  unpaired <- t.test(rpart, featureless, alternative="two.sided", paired=FALSE)
+  data.table(
+    mean.of.diff=paired$estimate, p.paired=paired$p.value,
+    mean.proposed=unpaired$estimate[1], mean.other=unpaired$estimate[2], p.unpaired=unpaired$p.value)
+}, by=.(signal,difficulty,train_size)])
+test.proposed[difficulty=="hard" & signal=="sin" & train_size==1000]
 ggplot()+
   geom_ribbon(aes(
     train_size,
@@ -225,3 +237,4 @@ ggplot()+
   scale_y_log10()+
   scale_x_log10()+
   facet_grid(difficulty ~ signal, labeller=label_both)
+
