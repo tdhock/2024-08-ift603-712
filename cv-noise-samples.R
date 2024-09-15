@@ -160,7 +160,8 @@ reg.bench.join <- reg.bench.wide[
   on=.NATURAL]
 mid.x <- 10^((max(rect.x)+min(rect.x))/2)
 lim <- c(0.005, 0.5)
-animint(
+
+viz <- animint(
   title="Samples required to learn non-trivial regression model",
   overview=ggplot()+
     ggtitle("Select signal, difficulty, Ntrain")+
@@ -210,13 +211,6 @@ animint(
         default=sprintf("p=%.4f", p.paired))),
       showSelected="signal_difficulty_Ntrain",
       data=test.proposed)+
-    ## geom_point(aes(
-    ##   10^(log10(train_size)+seq.diff), regr.mse,
-    ##   fill=algorithm),
-    ##   showSelected="signal_difficulty_Ntrain",
-    ##   clickSelects="test.fold",
-    ##   color=NA,
-    ##   data=reg.bench.score)+
     scale_y_log10(
       "Mean Squared Error (log scale)",
       limits=c(0.007, 0.12))+
@@ -305,6 +299,6 @@ animint(
     signal_difficulty_Ntrain="sin easy 1000")
 )
 if(FALSE){
-  animint2pages(viz, "2024-09-15-train-sizes-regression")
+  animint2pages(viz, "2024-09-15-K-fold-CV-train-sizes-regression")
 }
 
