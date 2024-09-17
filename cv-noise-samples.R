@@ -414,6 +414,7 @@ viz <- animint(
     signal_difficulty_Ntrain="sin easy 1000")
 )
 if(FALSE){
+  animint2pages(viz, "2024-09-15-K-fold-CV-train-sizes-regression")
   animint2pages(viz, "2024-09-16-K-fold-CV-train-sizes-regression")
 }
 viz
