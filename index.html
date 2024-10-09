@@ -296,6 +296,12 @@ Les séances magistrales devraient prendre une à deux heures par semaine.  Vous
 	      17 oct, 8:30-10:20
 			  <br>D7-2021: IFT603 + IFT712 de Allam à El-Yazidi
 			  <br>D7-3021: IFT712 de Errafik à Zouhair
+			  <ul>
+			    <li>Il peut y avoir des questions vraisemblables à <a href="https://github.com/tdhock/2023-08-deep-learning/tree/main/exams">mes examens précédants</a>.</li>
+			    <li>Complexité asymptotique, d'entraînement et de prévision, pour modèle linéaire, et pour plus proche voisins</li>
+			    <li>Comment calculer les prévisions, d'un modèle linéaire / plus proche voisins ? (si vous avez un vecteur de données x=[2, 5] et un vecteur de poids w=[-1,2], etc)</li>
+			    <li>Validation croisée K fois, comment diviser les données ? Comment choisir le nombre de voisins ?</li>
+			    <li>Maximum de vraisemblance : nous avons étudié les distributions Gaussiennes/Bernoulli: Si vous changez de distribution, comment trouver la fonction de perte correspondant ?
 			</td>
 	    <td align="right">
 		    </td>
@@ -433,11 +439,14 @@ Les séances magistrales devraient prendre une à deux heures par semaine.  Vous
 		 <br><br><font size="4"><b>Travaux Pratiques</b></font><br>
 			<hr align="left" width="95%">
 			Veuillez utiliser <b><a href="https://turnin.dinf.usherbrooke.ca/">turninweb</a></b> pour soumettre vos travaux. Tout retard ou erreur de remise entra&icirc;nera une pénalité de 10% par jour et une note de 0 après 5 jours.  <br>  Veuillez également utiliser la plateforme de développement "gitlab" de l'Université.  Pour ce faire, connectez-vous une première fois à <a href="https://depot.dinf.usherbrooke.ca/"> depot.dinf.usherbrooke.ca </a> et 12 heures plus tard vous pourrez commencer à travailler.  Si vous ne pouvez créer de projet 12 heures après vous être connecté, envoyer un courriel à l'administrateur système <a href="mailto:Daniel-Junior.Dube@USherbrooke.ca">Daniel-Junior Dubé</a> afin qu'il aide.  <br><br>
-			Pour connaître vos <font="red"> <b>partenaires d'équipes</a></font>, veuillez consulter le <a href="https://docs.google.com/spreadsheets/d/19urfulqOJ7DGyU7_eWcwARNfR1m2Ih08ZQ-3hT5-JJ0/edit?usp=sharing">document que voici</a>.
+			Pour connaître vos <font="red"> <b>partenaires d'équipes</a></font>, veuillez consulter <a href="https://turnin.dinf.usherbrooke.ca/">TurnIn</a>.
 		
 
 		<br><br>
-		<b>NOTE IMPORTANTE 1</b></b> : En plus de votre code, veuillez soumettre un fichier <b>"gitlab.txt"</b> dans lequel vous donnez le lien vers votre dépôt sur <a href="https://depot.dinf.usherbrooke.ca">le gitlab du département d'informatique</a>.<br>
+		<b>NOTE IMPORTANTE 1</b></b> : En plus de votre code, veuillez soumettre un fichier <b>"gitlab.txt"</b> dans lequel vous donnez le lien vers votre dépôt sur <a href="https://depot.dinf.usherbrooke.ca">le gitlab du département d'informatique</a>.
+	A noter : pour aider nos correcteurs, veuillez remettre les fichiers de code directement en plus du fichier gitlab.txt SVP !
+
+<br>
 		<b>NOTE IMPORTANTE 2</b> : En plus de vos documents de travail, vous devez remplir, signer et joindre à votre travail le formulaire d'intégrité que voici : <a href="https://docs.google.com/document/d/1-raKfIQleF6UWe0MsuegT9JnDhjhbxNdSpbaFXadJP0/edit?usp=sharing"> formulaire d'intégrité</a></b>.<br>
 		<b>NOTE IMPORTANTE 3</b> : En plus de vos documents de travail, vous devez remplir et joindre à votre travail l'agenda d'équipe que voici : <a href="https://docs.google.com/spreadsheets/d/1VVsGbUnHBbLhmscHSMmCIrPjn7GgZrnmXE_9xCvVu0Q/edit?usp=sharing"> agenda d'équipe</a>
 	<br>    <b>NOTE IMPORTANTE 4</b> : veuillez bien utiliser git car une mauvaise utilisation pourra entraîner une <b> perte de points aux TP3 et TP4 ainsi que pour le projet (ift712)</b>.
@@ -449,14 +458,13 @@ Les séances magistrales devraient prendre une à deux heures par semaine.  Vous
     <tbody>
         <tr> <td width="100">Setup</td> <td> <a href="./demos/python_setup.pdf"> Aide à la mise sur pied d'un environnement virtuel python sous Linux</a></td><td> <a href="./demos/requirements.txt">requirements.txt</a><br><a href="./demos/bashrc.txt">bashrc.txt</a><br>           			
 			<br>
-	
 	</tr>
     <tr> <td width="100">Tp1</td> <td><a href="./demos/tp1/tp1.pdf">Description (remise : 8 oct)</a> </td><td> <a href="./demos/tp1/progTP1.zip"> code</a> <a href="./demos/tp1/bareme1.pdf">bareme</a><br> </tr>
-    <tr> <td width="100">Tp2</td> <td><a href="./demos/tp2/tp2.pdf">Description (remise : 22 oct)</a> </td><td> <a href="./demos/tp2/progTP2.zip"> code</a> <a href="./demos/tp2/bareme2.pdf">bareme</a> </td></tr>
-    <tr> <td width="100">Tp3</td> <td><a href="./demos/tp3/tp3.pdf">Description (remise : 5 nov)</a> </td><td> <a href="./demos/tp3/progTP3.zip"> code</a> <a href="./demos/tp3/bareme3.pdf">bareme</a> </td></tr>
-    <tr> <td width="100">Tp4</td> <td><a href="./demos/tp4/tp4.pdf">Description (remise : 19 nov)</a> </td><td> <a href="./demos/tp4/progTP4.zip"> code</a> <a href="./demos/tp4/bareme4.pdf">bareme</a></td></tr>
+    <tr> <td width="100">Tp2</td> <td><a href="./demos/tp2/tp2.pdf">Description (remise : 31 oct)</a> </td><td> <a href="./demos/tp2/progTP2.zip"> code</a> <a href="./demos/tp2/bareme2.pdf">bareme</a></td></tr>
+    <tr> <td width="100">Tp3</td> <td><a href="./demos/tp3/tp3.pdf">Description (remise : 14 nov)</a> </td><td> <a href="./demos/tp3/progTP3.zip"> code</a> <a href="./demos/tp3/bareme3.pdf">bareme</a> </td></tr>
+    <tr> <td width="100">Tp4</td> <td><a href="./demos/tp4/tp4.pdf">Description (remise : 28 nov)</a> </td><td> <a href="./demos/tp4/progTP4.zip"> code</a> <a href="./demos/tp4/bareme4.pdf">bareme</a></td></tr>
     <tr> <td width="100"></td>    <td><a href="./softmax_grad.html">Le softmax et son gradient : kit de survie!</a> </td><td> </td></tr> 
-    <tr> <td width="100">Projet-ift712</td><td>Voir plan de cours (remise : 15 avril)</td><td>  </a></td></tr>
+    <tr> <td width="100">Projet-ift712</td><td>Voir plan de cours (remise : 12 déc)</td><td>  </a></td></tr>
 
     </tbody>
 
