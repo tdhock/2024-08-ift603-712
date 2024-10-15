@@ -175,7 +175,7 @@ height.pixels <- 500
   title="Overfitting using linear model polynomial degree and nearest neighbors",
   first=list(
     "number of nearest neighbors"=10),
-  source="https://github.com/tdhock/cs499-spring2020/blob/master/2020-02-03-capacity/figure-polynomial-neighbors-interactive.R"))
+  source="https://github.com/tdhock/2024-08-ift603-712/blob/master/figure-sur-sous-apprentissage.R"))
 if(FALSE){
   animint2pages(viz, "2024-10-15-degree-neighbors")
 }
