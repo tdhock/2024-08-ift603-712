@@ -43,6 +43,7 @@ for iteration in range(max_iterations):
 err_df = pd.concat(err_df_list)
 
 import plotnine as p9
+show_df = err_df.query("iteration < 10000")
 gg = p9.ggplot()+\
     p9.geom_line(
         p9.aes(
@@ -50,6 +51,9 @@ gg = p9.ggplot()+\
             y="mean_square_error",
             color="set_name"
         ),
-        data = err_df)
-gg.show()
-gg.save("Regression_lineare.png")
+        data = show_df)
+#p9.facet_grid("set_name ~ .", labeller="label_both", scales="free")
+gg.show()#dans une fenetre
+gg.save("Regression_lineare.png", width=10, height=5, dpi=200)
+
+err_df.query("set_name == 'validation'").mean_square_error.argmin()
