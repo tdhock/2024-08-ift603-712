@@ -504,7 +504,44 @@ Les séances magistrales devraient prendre une à deux heures par semaine.  Vous
 <tbody>
 <tr> <td width=350><b>Intra1</b></td> <td><a href="intraIFT603_pratique.pdf">intra1.pdf</a> </td></tr>
 <tr> <td width=350><b>Intra2</b></td> <td><a href="intraIFT603_pratique2.pdf">intra2.pdf</a> </td></tr>
-<tr> <td width=350><b>Final </b></td> <td><a href="finalIFT603_pratique.pdf">final.pdf</a></td></tr> 
+<tr> <td width=350><b>Final </b></td> <td><a href="finalIFT603_pratique.pdf">final.pdf</a></td></tr>
+
+<tr> <td>Exercises revision examen final. Presenter votre solution devant la classe pour gagner 5 points extra pour votre examen final.
+<br>
+1.  La validation croisée est un algorithme utilisé dans l'apprentissage automatique afin de quantifier la précision/erreur des modèles appris sur des données invisibles.
+a) En classe, nous avons discuté de deux types différents de divisions de validation croisée : les divisions train/test et les divisions subtrain/validation. Quel est le but de chaque type de division ?
+    b) Pour une division train/test, donnez le pseudo-code de l'algorithme de validation croisée K-fold, en veillant à inclure les entrées/sorties de l'algorithme, l'étape d'assignation aléatoire et le calcul de la précision/erreur du test.
+    <br>
+2. Paramètres du modèle et hyper-paramètres.
+a) Dans un modèle linéaire avec régularisation à arrêt précoce, considérez deux paramètres : le vecteur de pondération et le nombre d'itérations de descente de gradient. Lequel est un hyper-paramètre et quel est le paramètre de modèle régulier ? Pourquoi ?
+    b) Dans un réseau neuronal profond, considérez quatre paramètres : les fonctions d'activation spécifiques à la couche, les matrices de pondération spécifiques à la couche, le nombre d'unités cachées par couche et le nombre de couches. Quels sont les hyperparamètres et quels sont les paramètres de modèle réguliers ? Pourquoi ?
+    <br>
+3. Nombre de paramètres à apprendre. Supposons un réseau neuronal profond avec 5 couches, y compris les couches d'entrée et de sortie. Supposons une architecture de (entrée=100, 1000, 100, 10, sortie=1) unités dans chaque couche. Supposons que la fonction de prédiction pour chaque couche est f^l(h) = W^l h, où h est les unités de la couche précédente et W^l est une matrice de pondération.
+a) Combien de paramètres de pondération à valeur réelle y a-t-il dans W^1 ?
+b) Combien de paramètres de pondération à valeur réelle y a-t-il dans W^2 ?
+c) Combien de paramètres de pondération à valeur réelle y a-t-il dans W^3 ?
+d) Combien de paramètres de pondération à valeur réelle y a-t-il dans W^4 ?
+    e) Combien de paramètres de pondération à valeur réelle faut-il apprendre au total dans le réseau neuronal ?
+<br>    
+4. Régularisation pour les réseaux neuronaux. De nombreux hyperparamètres des réseaux neuronaux profonds que nous avons vus en classe peuvent être interprétés comme des paramètres de régularisation.
+a) Donnez trois exemples d'hyperparamètres qui peuvent être interprétés comme des paramètres de régularisation de réseaux neuronaux profonds. Pour chaque paramètre, les valeurs de paramètre GRANDES ou PETITES entraînent-elles un surajustement ?
+
+b) Expliquez comment vous pourriez démontrer qu'un hyperparamètre a un effet régularisant. Expliquez les calculs que vous effectueriez et la visualisation/le tracé des données que vous créeriez.
+
+<Br>
+5. Réseaux neuronaux convolutionnels.
+
+a) L'opération de convolution peut être interprétée comme une multiplication de matrices dense (pas de 0) ou creuse (avec 0) ?
+
+b) Supposons que la couche A d'un réseau neuronal est entièrement connectée et que la couche B est convolutionnelle. Si les deux couches ont le même nombre d'unités cachées, laquelle a le plus de paramètres à apprendre ? Pourquoi ?
+  Calculez manuellement le passage avant/arrière de l'algorithme de rétropropagation (voir les exercices de calcul sur les diapositives).
+<br>
+6.  Soit un réseau de neurones à K classes (ayant donc K neurones en sortie) et la fonction softmax placée à la fin du réseau de neurones. Expliquez pourquoi, lorsque le score pour un des neurones de sortie est très élevé, la sortie du softmax possède parfois de "‘NAN"’.
+  Donnez une façon de se prémunir contre cet effet pervers.
+<br>
+7.  Expliquez en quoi consiste la méthode de classification dites des forêts aléatoires (random
+  forests). Comment faire l'apprentissage, et la prediction ?
+  
  </td> </tr>
 </tbody></table>
 
