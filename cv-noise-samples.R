@@ -203,8 +203,11 @@ Tpred <- function(DT){
   ][]
 }
 (data.sizes <- point.dt[, .(N=.N), by=.(signal_difficulty_Ntrain, test.fold, Set)])
+
+
 viz <- animint(
   title="Samples required to learn non-trivial regression model",
+  video="https://vimeo.com/1051473773",
   overview=ggplot()+
     ggtitle("Select signal, difficulty, Ntrain")+
     theme_bw()+
@@ -215,6 +218,7 @@ viz <- animint(
       ymax=regr.mse_mean+regr.mse_sd,
       group=algorithm,
       fill=algorithm),
+      help=paste("Mean plus or minus one standard deviation, over", n.folds, "cross-validation folds."),
       color=NA,
       alpha=0.5,
       data=reg.bench.wide)+
@@ -228,12 +232,14 @@ viz <- animint(
       color=difference,
       size=algorithm,
       fill=algorithm),
+      help=paste("Mean over", n.folds, "cross-validation folds."),
       data=reg.bench.join)+
     geom_segment(aes(
       train_size, 10^mean.rpart,
       key=1,
       xend=train_size, yend=10^mean.featureless),
       showSelected="signal_difficulty_Ntrain",
+      help="Grey segment shows difference between rpart and featureless.",
       size=3,
       alpha=0.5,
       data=test.proposed)+
@@ -246,11 +252,13 @@ viz <- animint(
         is.nan(p.value), "Diff=0",
         default=sprintf("p=%.4f", p.value))),
       showSelected="signal_difficulty_Ntrain",
+      help="P-value in unpaired two-sided T-test for difference between rpart and featureless.",
       data=test.proposed)+
     geom_rect(aes(
       xmin=xmin, xmax=xmax,
       ymin=0, ymax=Inf),
       alpha=0.1,
+      help="Grey rect shows current selection of signal, difficulty, number of train samples.",
       fill="black",
       color=NA,
       clickSelects="signal_difficulty_Ntrain",
@@ -277,6 +285,7 @@ viz <- animint(
       breaks=mse.breaks)+
     geom_abline(aes(
       slope=slope, intercept=intercept),
+      help="Diagonal line represents equal prediction error for rpart and featureless.",
       color="grey50",
       data=data.table(slope=1, intercept=0))+
     geom_segment(aes(
@@ -284,6 +293,7 @@ viz <- animint(
       data=rbind(
         data.table(x=0, y=0, xend=0, yend=Inf, algorithm="rpart"),
         data.table(x=0, y=0, xend=Inf, yend=0, algorithm="featureless")),
+      help="Segments show colors corresponding to each algorithm: blue=rpart and red=featureless.",
       alpha=0.5,
       showSelected="algorithm",
       size=5)+
@@ -294,6 +304,7 @@ viz <- animint(
       tooltip=sprintf(
         "fold %d featureless=%.3f rpart=%.3f", test.fold, featureless, rpart)),
       showSelected="signal_difficulty_Ntrain",
+      help="One dot for each cross-validation fold.",
       clickSelects="test.fold",
       size=5,
       alpha=0.7,
@@ -316,6 +327,7 @@ viz <- animint(
       tooltip=sprintf(
         "%s fold %d MSE=%.3f", algorithm, test.fold, regr.mse)),
       showSelected=c("algorithm","signal_difficulty_Ntrain"),
+      help="One dot for each cross-validation fold and algorithm.",
       clickSelects="test.fold",
       alpha=0.7,
       size=5,
@@ -371,6 +383,7 @@ viz <- animint(
       key=row_id),
       showSelected=c("signal_difficulty_Ntrain","test.fold"),
       size=3,
+      help="One dot for each sample in test set (left) and train set (right).",
       fill="white",
       color=data.color,
       data=Tpred(point.dt))+
@@ -385,6 +398,7 @@ viz <- animint(
       color=algorithm,
       size=algorithm,
       group=paste(algorithm,Set)),
+      help="Blue and red curves show learned prediction functions.",
       showSelected=c("signal_difficulty_Ntrain","test.fold"),
       data=Tpred(pred.dt))+
     geom_line(aes(
@@ -393,6 +407,7 @@ viz <- animint(
       group=Set,
       color=algorithm,
       size=algorithm),
+      help="Black curve shows ideal prediction function, used to generate data.",
       showSelected=c("signal_difficulty_Ntrain"),
       data=Tpred(signal.dt))+
     geom_text(aes(
@@ -401,6 +416,7 @@ viz <- animint(
       key=Set,
       label=paste0(Set," set N=",N)),
       data=Tpred(data.sizes[, x := 0]),
+      help="Text shows number of samples in each set.",
       color=data.color,
       showSelected="signal_difficulty_Ntrain")+
     scale_size_manual(values=algo.sizes)+
@@ -413,6 +429,7 @@ viz <- animint(
   first=list(
     signal_difficulty_Ntrain="sin easy 1000")
 )
+
 if(FALSE){
   animint2pages(viz, "2024-09-15-K-fold-CV-train-sizes-regression")
   animint2pages(viz, "2024-09-16-K-fold-CV-train-sizes-regression")
