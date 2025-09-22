@@ -87,7 +87,7 @@ if(require(lgr))get_logger("mlr3")$set_threshold("warn")
   reg.bench.grid, store_models = TRUE))
 
 reg.bench.score <- nc::capture_first_df(
-  mlr3resampling::score(reg.bench.result),
+  data.table(mlr3resampling::score(reg.bench.result)),
   task_id=list(
     signal=".*?",
     " ",
@@ -206,7 +206,7 @@ Tpred <- function(DT){
 
 
 viz <- animint(
-  title="Samples required to learn non-trivial regression model",
+  title="Samples required to learn non-trivial regression model, facets",
   video="https://vimeo.com/1051473773",
   overview=ggplot()+
     ggtitle("Select signal, difficulty, Ntrain")+
@@ -274,7 +274,7 @@ viz <- animint(
   scatter=ggplot()+
     ggtitle("MSE for selected")+
     theme_bw()+
-    theme_animint(width=300, height=300)+
+    theme_animint(width=300, height=300, last_in_row=TRUE)+
     theme(legend.position="none")+
     coord_equal(xlim=mse.limits, ylim=mse.limits)+
     scale_x_log10(
@@ -312,7 +312,7 @@ viz <- animint(
   details=ggplot()+
     ggtitle("MSE for selected")+
     theme_bw()+
-    theme_animint(width=1000, height=120)+
+    theme_animint(width=1000, height=130, colspan=2, last_in_row=TRUE)+
     theme(legend.position="none")+
     scale_y_discrete("Algo")+
     scale_x_log10(
@@ -332,95 +332,48 @@ viz <- animint(
       alpha=0.7,
       size=5,
       data=reg.bench.score),
-  ## pred=ggplot()+
-  ##   ggtitle("Predictions for selected train/test split")+
-  ##   theme_bw()+
-  ##   theme_animint(height=300, width=900)+
-  ##   geom_point(aes(
-  ##     x, y,
-  ##     key=paste(signal_difficulty_Ntrain, row_id)),
-  ##     showSelected=c("signal_difficulty_Ntrain","test.fold"),
-  ##     size=3,
-  ##     fill="white",
-  ##     color=data.color,
-  ##     data=point.dt[Set!="unused"])+
-  ##   scale_x_continuous("x = feature/input")+
-  ##   scale_y_continuous("y = label/output")+
-  ##   scale_size_manual(values=algo.sizes)+
-  ##   scale_color_manual(values=algo.colors)+
-  ##   geom_line(aes(
-  ##     x, y,
-  ##     key=algorithm,
-  ##     color=algorithm,
-  ##     size=algorithm,
-  ##     group=algorithm),
-  ##     showSelected=c("signal_difficulty_Ntrain","test.fold"),
-  ##     data=pred.dt)+
-  ##   geom_line(aes(
-  ##     x, y,
-  ##     key=algorithm,
-  ##     color=algorithm,
-  ##     size=algorithm),
-  ##     showSelected=c("signal_difficulty_Ntrain"),
-  ##     data=signal.dt)+
-  ##   geom_text(aes(
-  ##     0, 0.98,
-  ##     key=Set,
-  ##     label=paste0("N",Set,"=",N)),
-  ##     hjust=0,
-  ##     data=data.sizes,
-  ##     color=data.color,
-  ##     showSelected="signal_difficulty_Ntrain")+
-  ##   facet_grid(
-  ##     . ~ Set,
-  ##     labeller=label_both),
   pred=ggplot()+
     ggtitle("Predictions for selected train/test split")+
     theme_bw()+
-    theme_animint(height=300, width=900)+
+    theme_animint(height=300, width=900, colspan=2)+
     geom_point(aes(
       x, y,
-      key=row_id),
+      key=paste(signal_difficulty_Ntrain, row_id)),
       showSelected=c("signal_difficulty_Ntrain","test.fold"),
       size=3,
-      help="One dot for each sample in test set (left) and train set (right).",
       fill="white",
       color=data.color,
-      data=Tpred(point.dt))+
-    scale_x_continuous(
-      "x = feature/input",
-      labels=Tlabels,
-      breaks=Tbreaks)+
+      data=point.dt[Set!="unused"])+
+    scale_x_continuous("x = feature/input")+
     scale_y_continuous("y = label/output")+
+    scale_size_manual(values=algo.sizes)+
+    scale_color_manual(values=algo.colors)+
     geom_line(aes(
       x, y,
-      key=paste(algorithm,Set),
+      key=algorithm,
       color=algorithm,
       size=algorithm,
-      group=paste(algorithm,Set)),
-      help="Blue and red curves show learned prediction functions.",
+      group=algorithm),
       showSelected=c("signal_difficulty_Ntrain","test.fold"),
-      data=Tpred(pred.dt))+
+      data=pred.dt)+
     geom_line(aes(
       x, y,
-      key=Set,
-      group=Set,
+      key=algorithm,
       color=algorithm,
       size=algorithm),
-      help="Black curve shows ideal prediction function, used to generate data.",
       showSelected=c("signal_difficulty_Ntrain"),
-      data=Tpred(signal.dt))+
+      data=signal.dt)+
     geom_text(aes(
-      x, ifelse(Set=="unused", unused.y.text, 0.98),
-      hjust=ifelse(Set=="unused", 0.5, 0),
+      0, 0.98,
       key=Set,
-      label=paste0(Set," set N=",N)),
-      data=Tpred(data.sizes[, x := 0]),
-      help="Text shows number of samples in each set.",
+      label=paste0("N",Set,"=",N)),
+      hjust=0,
+      data=data.sizes[Set!="unused"],
       color=data.color,
       showSelected="signal_difficulty_Ntrain")+
-    scale_size_manual(values=algo.sizes)+
-    scale_color_manual(values=algo.colors),
+    facet_grid(
+      . ~ Set,
+      labeller=label_both),
   out.dir="cv-noise-samples",
   source="https://github.com/tdhock/2024-08-ift603-712/blob/main/cv-noise-samples-facets.R",
   duration=list(
@@ -429,8 +382,8 @@ viz <- animint(
   first=list(
     signal_difficulty_Ntrain="sin easy 1000")
 )
+viz
 
 if(FALSE){
-  animint2pages(viz, "2024-09-15-K-fold-CV-train-sizes-regression")
+  animint2pages(viz, "2024-09-15-K-fold-CV-train-sizes-regression", chromote_sleep_seconds=5)
 }
-viz
