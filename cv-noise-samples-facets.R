@@ -86,10 +86,8 @@ if(require(lgr))get_logger("mlr3")$set_threshold("warn")
 (reg.bench.result <- mlr3::benchmark(
   reg.bench.grid, store_models = TRUE))
 
-## TODO why is data.table needed below? is a a bug in mlr3resampling?
-
 reg.bench.score <- nc::capture_first_df(
-  data.table(mlr3resampling::score(reg.bench.result)),
+  mlr3resampling::score(reg.bench.result),
   task_id=list(
     signal=".*?",
     " ",
@@ -276,7 +274,7 @@ viz <- animint(
   scatter=ggplot()+
     ggtitle("MSE for selected")+
     theme_bw()+
-    theme_animint(width=300, height=300, last_in_row=TRUE)+
+    theme_animint(width=300, height=300)+
     theme(legend.position="none")+
     coord_equal(xlim=mse.limits, ylim=mse.limits)+
     scale_x_log10(
@@ -314,7 +312,7 @@ viz <- animint(
   details=ggplot()+
     ggtitle("MSE for selected")+
     theme_bw()+
-    theme_animint(width=1000, height=130, colspan=2, last_in_row=TRUE)+
+    theme_animint(width=1000, height=120)+
     theme(legend.position="none")+
     scale_y_discrete("Algo")+
     scale_x_log10(
@@ -334,10 +332,52 @@ viz <- animint(
       alpha=0.7,
       size=5,
       data=reg.bench.score),
+  ## pred=ggplot()+
+  ##   ggtitle("Predictions for selected train/test split")+
+  ##   theme_bw()+
+  ##   theme_animint(height=300, width=900)+
+  ##   geom_point(aes(
+  ##     x, y,
+  ##     key=paste(signal_difficulty_Ntrain, row_id)),
+  ##     showSelected=c("signal_difficulty_Ntrain","test.fold"),
+  ##     size=3,
+  ##     fill="white",
+  ##     color=data.color,
+  ##     data=point.dt[Set!="unused"])+
+  ##   scale_x_continuous("x = feature/input")+
+  ##   scale_y_continuous("y = label/output")+
+  ##   scale_size_manual(values=algo.sizes)+
+  ##   scale_color_manual(values=algo.colors)+
+  ##   geom_line(aes(
+  ##     x, y,
+  ##     key=algorithm,
+  ##     color=algorithm,
+  ##     size=algorithm,
+  ##     group=algorithm),
+  ##     showSelected=c("signal_difficulty_Ntrain","test.fold"),
+  ##     data=pred.dt)+
+  ##   geom_line(aes(
+  ##     x, y,
+  ##     key=algorithm,
+  ##     color=algorithm,
+  ##     size=algorithm),
+  ##     showSelected=c("signal_difficulty_Ntrain"),
+  ##     data=signal.dt)+
+  ##   geom_text(aes(
+  ##     0, 0.98,
+  ##     key=Set,
+  ##     label=paste0("N",Set,"=",N)),
+  ##     hjust=0,
+  ##     data=data.sizes,
+  ##     color=data.color,
+  ##     showSelected="signal_difficulty_Ntrain")+
+  ##   facet_grid(
+  ##     . ~ Set,
+  ##     labeller=label_both),
   pred=ggplot()+
     ggtitle("Predictions for selected train/test split")+
     theme_bw()+
-    theme_animint(height=300, width=900, colspan=2)+
+    theme_animint(height=300, width=900)+
     geom_point(aes(
       x, y,
       key=row_id),
@@ -382,16 +422,15 @@ viz <- animint(
     scale_size_manual(values=algo.sizes)+
     scale_color_manual(values=algo.colors),
   out.dir="cv-noise-samples",
-  source="https://github.com/tdhock/2024-08-ift603-712/blob/main/cv-noise-samples.R",
+  source="https://github.com/tdhock/2024-08-ift603-712/blob/main/cv-noise-samples-facets.R",
   duration=list(
     test.fold=1000,
     signal_difficulty_Ntrain=1000),
   first=list(
     signal_difficulty_Ntrain="sin easy 1000")
 )
-viz
 
 if(FALSE){
-  animint2pages(viz, "2024-09-16-K-fold-CV-train-sizes-regression", chromote_sleep_seconds = 5)
+  animint2pages(viz, "2024-09-15-K-fold-CV-train-sizes-regression")
 }
-
+viz
