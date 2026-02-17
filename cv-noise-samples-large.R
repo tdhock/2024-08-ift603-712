@@ -1,6 +1,6 @@
 library(data.table)
 n.folds <- 6
-max.N <- 1000
+max.N <- 2000
 N <- max.N*n.folds/(n.folds-1)
 abs.x <- 3*pi
 set.seed(2)
@@ -65,7 +65,7 @@ if(require(animint2)){
 }
 
 reg_size_cv <- mlr3resampling::ResamplingVariableSizeTrainCV$new()
-n.train.sizes <- 9
+n.train.sizes <- 18
 reg_size_cv$param_set$values$train_sizes <- n.train.sizes
 reg_size_cv$param_set$values$folds <- n.folds
 reg_size_cv$param_set$values$random_seeds <- 1
@@ -183,7 +183,7 @@ reg.bench.join <- reg.bench.wide[
   on=.NATURAL]
 mid.x <- 10^((max(rect.x)+min(rect.x))/2)
 data.color <- "grey50"
-mse.limits <- c(0.01, 0.045)
+mse.limits <- c(0.009, 0.05)
 mse.breaks <- c(0.01,0.02,0.04)
 Toff <- 1.2
 Tbrk <- c(0,0.5,1)
@@ -227,6 +227,7 @@ viz <- animint(
       group=algorithm),
       help=paste("Mean over", n.folds, "cross-validation folds."),
       color="grey",
+      showSelected="algorithm",
       data=reg.bench.wide)+
     scale_size_manual(values=algo.sizes)+
     scale_fill_manual(values=algo.colors)+
@@ -428,18 +429,16 @@ viz <- animint(
     scale_size_manual(values=algo.sizes)+
     scale_color_manual(values=algo.colors),
   out.dir="cv-noise-samples",
-  source="https://github.com/tdhock/2024-08-ift603-712/blob/main/cv-noise-samples.R",
+  source="https://github.com/tdhock/2024-08-ift603-712/blob/main/cv-noise-samples-large.R",
   duration=list(
     test.fold=1000,
     signal_difficulty_Ntrain=1000),
   first=list(
-    signal_difficulty_Ntrain="sin easy 1000")
+    signal_difficulty_Ntrain=paste("sin easy", max.N))
 )
 
 if(FALSE){
-  animint2pages(viz, "2024-09-15-K-fold-CV-train-sizes-regression")
-  animint2pages(viz, "2024-09-16-K-fold-CV-train-sizes-regression")
-  animint2pages(viz, "2026-02-17-K-fold-CV-train-sizes-regression")
+  animint2pages(viz, "2026-02-17-train-sizes-2000")
 }
 viz
 
