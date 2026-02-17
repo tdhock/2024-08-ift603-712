@@ -3,7 +3,7 @@ n.folds <- 6
 max.N <- 1000
 N <- max.N*n.folds/(n.folds-1)
 abs.x <- 3*pi
-set.seed(2)
+set.seed(1)
 norm01 <- function(z,ref=z)(z-min(ref))/(max(ref)-min(ref))
 (grid.dt <- data.table(
   raw=seq(-abs.x,abs.x, l=201),
@@ -86,8 +86,6 @@ if(require(lgr))get_logger("mlr3")$set_threshold("warn")
 (reg.bench.result <- mlr3::benchmark(
   reg.bench.grid, store_models = TRUE))
 
-## TODO why is data.table needed below? is a a bug in mlr3resampling?
-
 reg.bench.score <- nc::capture_first_df(
   data.table(mlr3resampling::score(reg.bench.result)),
   task_id=list(
@@ -139,11 +137,11 @@ signal.dt <- upred[
 point.dt[grepl(" 10$", signal_difficulty_Ntrain) & test.fold==1 & Set=="train"][, .SD[1:2], by=.(signal_difficulty_Ntrain)]
 
 algo.colors <- c(
-  featureless="blue",
-  rpart="red",
+  featureless="red",
+  rpart="deepskyblue",
   ideal="black")
 algo.sizes <- c(
-  ideal=1,
+  truth=6,
   featureless=4,
   rpart=2)
 (reg.bench.wide <- dcast(
@@ -208,7 +206,7 @@ Tpred <- function(DT){
 
 
 viz <- animint(
-  title="Samples required to learn non-trivial regression model",
+  title="Samples required to learn non-trivial regression model, facets",
   video="https://vimeo.com/1051473773",
   overview=ggplot()+
     ggtitle("Select signal, difficulty, Ntrain")+
@@ -223,12 +221,6 @@ viz <- animint(
       help=paste("Mean plus or minus one standard deviation, over", n.folds, "cross-validation folds."),
       color=NA,
       alpha=0.5,
-      data=reg.bench.wide)+
-    geom_line(aes(
-      train_size, regr.mse_mean,
-      group=algorithm),
-      help=paste("Mean over", n.folds, "cross-validation folds."),
-      color="grey",
       data=reg.bench.wide)+
     scale_size_manual(values=algo.sizes)+
     scale_fill_manual(values=algo.colors)+
@@ -278,7 +270,7 @@ viz <- animint(
     )+
     scale_x_log10(
       "Ntrain = Number of samples in train set (log scale)")+
-    facet_grid(signal ~ difficulty),
+    facet_grid(signal ~ difficulty, labeller=label_both),
   scatter=ggplot()+
     ggtitle("MSE for selected")+
     theme_bw()+
@@ -346,64 +338,52 @@ viz <- animint(
     theme_animint(height=300, width=900, colspan=2)+
     geom_point(aes(
       x, y,
-      key=row_id),
+      key=paste(signal_difficulty_Ntrain, row_id)),
       showSelected=c("signal_difficulty_Ntrain","test.fold"),
       size=3,
-      help="One dot for each sample in test set (left) and train set (right).",
       fill="white",
       color=data.color,
-      data=Tpred(point.dt))+
-    scale_x_continuous(
-      "x = feature/input",
-      labels=Tlabels,
-      breaks=Tbreaks)+
+      data=point.dt[Set!="unused"])+
+    scale_x_continuous("x = feature/input")+
     scale_y_continuous("y = label/output")+
+    scale_size_manual(values=algo.sizes)+
+    scale_color_manual(values=algo.colors)+
     geom_line(aes(
       x, y,
-      key=Set,
-      group=Set,
-      color=algorithm,
-      size=algorithm),
-      help="Black curve shows ideal prediction function, used to generate data.",
-      showSelected=c("signal_difficulty_Ntrain"),
-      data=Tpred(signal.dt))+
-    geom_line(aes(
-      x, y,
-      key=paste(algorithm,Set),
+      key=algorithm,
       color=algorithm,
       size=algorithm,
-      group=paste(algorithm,Set)),
-      help="Blue and red curves show learned prediction functions.",
+      group=algorithm),
       showSelected=c("signal_difficulty_Ntrain","test.fold"),
-      data=Tpred(pred.dt))+
+      data=pred.dt)+
+    geom_line(aes(
+      x, y,
+      key=algorithm,
+      color=algorithm,
+      size=algorithm),
+      showSelected=c("signal_difficulty_Ntrain"),
+      data=signal.dt)+
     geom_text(aes(
-      x, ifelse(Set=="unused", unused.y.text, 0.98),
-      hjust=ifelse(Set=="unused", 0.5, 0),
+      0, 0.98,
       key=Set,
-      label=paste0(Set," set N=",N)),
-      data=Tpred(data.sizes[, x := 0]),
-      help="Text shows number of samples in each set.",
+      label=paste0("N",Set,"=",N)),
+      hjust=0,
+      data=data.sizes[Set!="unused"],
       color=data.color,
       showSelected="signal_difficulty_Ntrain")+
-    scale_size_manual(values=algo.sizes)+
-    scale_color_manual(values=algo.colors),
+    facet_grid(
+      . ~ Set,
+      labeller=label_both),
   out.dir="cv-noise-samples",
-  source="https://github.com/tdhock/2024-08-ift603-712/blob/main/cv-noise-samples.R",
+  source="https://github.com/tdhock/2024-08-ift603-712/blob/main/cv-noise-samples-facets.R",
   duration=list(
     test.fold=1000,
     signal_difficulty_Ntrain=1000),
   first=list(
     signal_difficulty_Ntrain="sin easy 1000")
 )
-
-if(FALSE){
-  animint2pages(viz, "2024-09-15-K-fold-CV-train-sizes-regression")
-  animint2pages(viz, "2024-09-16-K-fold-CV-train-sizes-regression")
-  animint2pages(viz, "2026-02-17-K-fold-CV-train-sizes-regression")
-}
 viz
 
 if(FALSE){
-  animint2pages(viz, "2024-09-16-K-fold-CV-train-sizes-regression", chromote_sleep_seconds = 5)
+  animint2pages(viz, "2024-09-15-K-fold-CV-train-sizes-regression", chromote_sleep_seconds=5)
 }
-
