@@ -48,17 +48,24 @@ for(signal in names(reg.pattern.list)){
 }
 (reg.data <- rbindlist(reg.data.list))
 (grid.signal.dt <- rbindlist(grid.signal.dt.list))
+algo.colors <- c(
+  featureless="blue",
+  rpart="red",
+  ideal="black")
 if(require(animint2)){
   ggplot()+
+    theme_bw()+
     geom_point(aes(
       x, y),
+      fill="white",
+      color="grey",
       data=reg.data)+
     geom_line(aes(
-      x, y),
-      color="red",
+      x, y, color=algorithm),
       size=2,
       data=grid.signal.dt)+
-    facet_grid(signal ~ difficulty, labeller=label_both)
+    scale_color_manual(values=algo.colors)+
+    facet_grid(. ~ difficulty, labeller=label_both)
 }
 
 reg_size_cv <- mlr3resampling::ResamplingVariableSizeTrainCV$new()
@@ -133,10 +140,6 @@ signal.dt <- upred[
 
 point.dt[grepl(" 10$", signal_difficulty_Ntrain) & test.fold==1 & Set=="train"][, .SD[1:2], by=.(signal_difficulty_Ntrain)]
 
-algo.colors <- c(
-  featureless="blue",
-  rpart="red",
-  ideal="black")
 algo.sizes <- c(
   ideal=1,
   featureless=4,
@@ -170,7 +173,7 @@ reg.bench.join <- reg.bench.wide[
   on=.NATURAL]
 mid.x <- 10^((max(rect.x)+min(rect.x))/2)
 data.color <- "grey50"
-mse.limits <- c(0.04, 3.2)
+mse.limits <- c(0.04, 5)
 mse.breaks <- c(0.05, 0.2, 0.8, 3.2)
 Toff <- 1.2
 Tbrk <- c(0,0.5,1)
