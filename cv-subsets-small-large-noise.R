@@ -674,6 +674,7 @@ saveplot <- function(tid, tsub){
   png(out.png, width=7, height=2.5, units="in", res=200)
   gg <- plot(pds, text.size=9)+
     theme_bw()+
+    theme(panel.margin=grid::unit(1, "lines"))+
     scale_x_continuous("RMSE of rpart decision tree (mean±SD over 10 fold-CV)")+
     facet_grid(. ~ sample_size, labeller=label_both)+
     ggtitle(paste0("Subsets are: ", tid, ", predict on subset: ", tsub))
