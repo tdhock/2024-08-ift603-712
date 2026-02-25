@@ -447,7 +447,7 @@ for(sim.name in names(sim.meta.list)){
     sim.name, sim.i.dt, target="y")
   sub_task$col_roles$subset <- "Subset"
   sub_task$col_roles$feature <- "x"
-  d_task_list[[row.i]] <- sub_task
+  d_task_list[[sim.name]] <- sub_task
   gg <- ggplot()+
     ggtitle(paste("Simulation:", sim.name))+
     geom_point(aes(
