@@ -430,27 +430,45 @@ ggplot()+
   facet_grid(signal ~ difficulty)
 
 set.seed(1)
-sub_task_dt <- rbind(
-  reg.data[difficulty=="easy"][sample(.N, 400)],
-  reg.data[difficulty=="hard"][sample(.N, 200)]
-)[, .(x,y,difficulty)]
-sub_task <- mlr3::TaskRegr$new(
-  "different", sub_task_dt, target="y")
-sub_task$col_roles$subset <- "difficulty"
-sub_task$col_roles$feature <- "x"
+sim.meta.list <- list(
+  different=rbind(
+    reg.data[difficulty=="easy"][sample(.N, 400)],
+    reg.data[difficulty=="hard"][sample(.N, 200)]
+  )[, .(x,y,Subset=difficulty)],
+  iid_easy=reg.data[
+    difficulty=="easy"
+  ][sample(.N, 120)][
+  , Subset := rep(c("large","large","small"), l=.N)
+  ][, .(x,y,Subset)])
+d_task_list <- list()
+for(sim.name in names(sim.meta.list)){
+  sim.i.dt <- sim.meta.list[[sim.name]]
+  sub_task <- mlr3::TaskRegr$new(
+    sim.name, sim.i.dt, target="y")
+  sub_task$col_roles$subset <- "Subset"
+  sub_task$col_roles$feature <- "x"
+  d_task_list[[row.i]] <- sub_task
+  gg <- ggplot()+
+    ggtitle(paste("Simulation:", sim.name))+
+    geom_point(aes(
+      x, y),
+      color="black",
+      fill="white",
+      data=sim.i.dt)+
+    geom_line(aes(
+      x, y, color=algorithm),
+      data=grid.signal.dt)+
+    scale_color_manual(values=algo.colors)
+  sim.png <- sprintf("cv-subsets-small-large-noise-%s.png", sim.name)
+  png(sim.png, width=7, height=3, units="in", res=200)
+  print(gg+facet_grid(. ~ Subset, labeller=label_both))
+  dev.off()
+  sim.png <- sprintf("cv-subsets-small-large-noise-%s-vertical.png", sim.name)
+  png(sim.png, width=5, height=7, units="in", res=200)
+  print(gg+facet_grid(Subset~., labeller=label_both))
+  dev.off()
+}
 
-iid_task_dt <- reg.data[
-  difficulty=="easy"
-][sample(.N, 120)][
-, Subset := rep(c("large","large","small"), l=.N)
-][, .(x,y,Subset)]
-iid_task <- mlr3::TaskRegr$new(
-  "iid_easy", iid_task_dt, target="y")
-iid_task$col_roles$subset <- "Subset"
-iid_task$col_roles$feature <- "x"
-table(iid_task_dt$Subset)
-
-d_task_list <- list(iid_task, sub_task)
 soakd <- mlr3resampling::ResamplingSameOtherSizesCV$new()
 soakd$param_set$values$sizes <- 0
 soakd$param_set$values$folds <- 10
