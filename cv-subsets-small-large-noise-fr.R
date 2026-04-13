@@ -236,3 +236,101 @@ gg <- ggplot()+
 png("cv-subsets-small-large-noise-fr.png", width=12, height=3, units="in", res=200)
 print(gg)
 dev.off()
+
+
+
+### compare with best
+rpart.wide <- reg.bench.wide[algorithm=="rpart"]
+rpart.best <- rpart.wide[
+  , .SD[
+    which.min(regr.mse_mean),
+    .(signal,difficulty,train_size,signal_difficulty_Ntrain)
+  ], by=Données]
+rpart.score <- fr(reg.bench.score[algorithm=="rpart"])
+best.score <- rpart.score[
+  rpart.best,
+  .(Données,test.fold,best.lmse=log10.mse),
+  on=.NATURAL]
+compare.score <- best.score[rpart.score, on=.NATURAL]
+test.proposed <- compare.score[, {
+  paired <- t.test(log10.mse, best.lmse, alternative="greater", paired=TRUE)
+  unpaired <- t.test(log10.mse, best.lmse, alternative="greater", paired=FALSE)
+  data.table(
+    mean.of.diff=paired$estimate, p.paired=paired$p.value, p.value=unpaired$p.value,
+    mean.rpart=unpaired$estimate[1], mean.featureless=unpaired$estimate[2], p.unpaired=unpaired$p.value)
+}, keyby=.(Données,signal,difficulty,train_size)
+][, `:=`(
+  Différence=ifelse(
+    is.nan(p.value) | p.value>0.05, "pas significative", "significative"),
+  xmin=10^(rect.x-seq.diff),
+  xmax=10^(rect.x+seq.diff)
+), by=.(Données,signal,difficulty)][]
+reg.bench.join <- reg.bench.wide[
+  test.proposed[, .(Données,train_size,Différence)],
+  on=.NATURAL]
+mid.x <- 10^((max(rect.x)+min(rect.x))/2)
+data.color <- "grey50"
+mse.limits <- c(0.04, 3.2)
+mse.breaks <- c(0.05, 0.2, 0.8, 3.2)
+Toff <- 1.2
+Tbrk <- c(0,0.5,1)
+Tbreaks <- c(Tbrk,Tbrk+Toff)
+Tlabels <- c(Tbrk,Tbrk)
+unused.x <- 1.1
+unused.y.point <- -3
+unused.y.text <- -4
+Set.y.text <- 4
+Tpred <- function(DT){
+  if(! "Set" %in% names(DT)){
+    DT <- data.table(Set=c("train","test"))[, data.table(DT), by=Set]
+  }
+  data.table(DT)[
+  , x := ifelse(Set=="test",0,Toff)+x
+  ][
+    Set=="unused", `:=`(x=unused.x, y=unused.y.point)
+  ][]
+}
+(data.sizes <- point.dt[, .(N=.N), by=.(signal_difficulty_Ntrain, test.fold, Set)])
+gg <- ggplot()+
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=60, hjust=1))+
+  geom_ribbon(aes(
+    train_size,
+    ymin=regr.mse_mean-regr.mse_sd,
+    ymax=regr.mse_mean+regr.mse_sd,
+    group=Algorithme,
+    fill=Algorithme),
+    help=paste("Mean plus or minus one standard deviation, over", n.folds, "cross-validation folds."),
+    color=NA,
+    alpha=0.5,
+    data=reg.bench.wide)+
+  geom_line(aes(
+    train_size, regr.mse_mean,
+    group=Algorithme),
+    help=paste("Mean over", n.folds, "cross-validation folds."),
+    color="grey",
+    showSelected="Algorithme",
+    data=reg.bench.wide)+
+  scale_size_manual(values=algo.info[, structure(size, names=Algorithme)])+
+  scale_fill_manual(values=algo.info[, structure(color, names=Algorithme)])+
+  scale_color_manual(values=c(
+    significative="black",
+    "pas significative"=NA))+
+  geom_point(aes(
+    train_size, regr.mse_mean,
+    color=Différence,
+    size=Algorithme,
+    fill=Algorithme),
+    data=reg.bench.join)+
+  scale_y_log10(
+    "Erreur L2 sur l’ensemble test"
+  )+
+  scale_x_log10(
+    "Nombre d’échantillons dans l’ensemble d’entraînement",
+    breaks=unique(reg.bench.join$train_size))+
+  facet_wrap("Données", scales="free", labeller=label_both)
+print(gg)
+
+png("cv-subsets-small-large-noise-fr-best.png", width=12, height=3, units="in", res=200)
+print(gg)
+dev.off()
