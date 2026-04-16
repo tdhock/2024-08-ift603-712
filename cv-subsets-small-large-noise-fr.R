@@ -133,6 +133,7 @@ signal.dt <- upred[
 
 point.dt[grepl(" 10$", signal_difficulty_Ntrain) & test.fold==1 & Set=="train"][, .SD[1:2], by=.(signal_difficulty_Ntrain)]
 
+## compare with featureless.
 (reg.bench.wide <- dcast(
   reg.bench.score,
   signal + difficulty + train_size + algorithm + signal_difficulty_Ntrain ~ .,
@@ -144,12 +145,12 @@ reg.bench.test <- dcast(
   value.var=c("log10.mse"))
 rect.x <- seq(1,log10(max.N),l=n.train.sizes)
 seq.diff <- diff(rect.x)[1]/2
-test.proposed <- reg.bench.test[, {
+test.featureless <- reg.bench.test[, {
   paired <- t.test(rpart, featureless, alternative="two.sided", paired=TRUE)
   unpaired <- t.test(rpart, featureless, alternative="two.sided", paired=FALSE)
   data.table(
     mean.of.diff=paired$estimate, p.paired=paired$p.value, p.value=unpaired$p.value,
-    mean.rpart=unpaired$estimate[1], mean.featureless=unpaired$estimate[2], p.unpaired=unpaired$p.value)
+    mean.rpart=mean(10^rpart), mean.featureless=mean(10^featureless), p.unpaired=unpaired$p.value)
 }, keyby=.(signal,difficulty,train_size,signal_difficulty_Ntrain)
 ][, `:=`(
   difference=ifelse(
@@ -158,7 +159,7 @@ test.proposed <- reg.bench.test[, {
   xmax=10^(rect.x+seq.diff)
 ), by=.(signal,difficulty)][]
 reg.bench.join <- reg.bench.wide[
-  test.proposed[, .(signal_difficulty_Ntrain,signal,difficulty,train_size,difference)],
+  test.featureless[, .(signal_difficulty_Ntrain,signal,difficulty,train_size,difference)],
   on=.NATURAL]
 mid.x <- 10^((max(rect.x)+min(rect.x))/2)
 data.color <- "grey50"
@@ -183,16 +184,18 @@ Tpred <- function(DT){
   ][]
 }
 (data.sizes <- point.dt[, .(N=.N), by=.(signal_difficulty_Ntrain, test.fold, Set)])
-
 algo.info <- rowwiseDT(
   Algorithme=, algorithm=, color=, size=,
   "sans caractères","featureless","blue",4,
   "arbre de décision", "rpart", "red", 2,
   "idéal", "ideal", "black", 1)
-fr <- function(DT)DT[, let(
-  Données=ifelse(difficulty=="easy", "A", "B"),
-  Algorithme=factor(algorithm, algo.info$algorithm, algo.info$Algorithme)
-)]
+fr <- function(DT){
+  if(is.null(DT[["algorithm"]]))DT[, algorithm := NA_character_]
+  DT[, let(
+    Données=ifelse(difficulty=="easy", "A", "B"),
+    Algorithme=factor(algorithm, algo.info$algorithm, algo.info$Algorithme)
+  )]
+}
 fr(reg.bench.wide)
 fr(reg.bench.join)[, let(Différence=ifelse(difference=="significant", "significative", "pas significative"))]
 gg <- ggplot()+
@@ -221,6 +224,13 @@ gg <- ggplot()+
     significative="black",
     "pas significative"=NA))+
   geom_point(aes(
+    train_size, regr.mse_mean),
+    size=5,
+    shape=21,
+    fill="black",
+    color="black",
+    data=reg.bench.join[Différence=="significative"])+
+  geom_point(aes(
     train_size, regr.mse_mean,
     color=Différence,
     size=Algorithme,
@@ -236,8 +246,6 @@ gg <- ggplot()+
 png("cv-subsets-small-large-noise-fr.png", width=12, height=3, units="in", res=200)
 print(gg)
 dev.off()
-
-
 
 ### compare with best
 rpart.wide <- reg.bench.wide[algorithm=="rpart"]
@@ -313,9 +321,18 @@ gg <- ggplot()+
     data=reg.bench.wide)+
   scale_size_manual(values=algo.info[, structure(size, names=Algorithme)])+
   scale_fill_manual(values=algo.info[, structure(color, names=Algorithme)])+
-  scale_color_manual(values=c(
+  scale_color_manual(
+    "Différence,\narbre-meilleur",
+    values=c(
     significative="black",
     "pas significative"=NA))+
+  geom_point(aes(
+    train_size, regr.mse_mean),
+    size=5,
+    shape=21,
+    fill="black",
+    color="black",
+    data=reg.bench.join[Algorithme=="arbre de décision" & Différence=="significative"])+
   geom_point(aes(
     train_size, regr.mse_mean,
     color=Différence,
@@ -332,5 +349,70 @@ gg <- ggplot()+
 print(gg)
 
 png("cv-subsets-small-large-noise-fr-best.png", width=12, height=3, units="in", res=200)
+print(gg)
+dev.off()
+
+### compare with both.
+gg <- ggplot()+
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=60, hjust=1))+
+  geom_ribbon(aes(
+    train_size,
+    ymin=regr.mse_mean-regr.mse_sd,
+    ymax=regr.mse_mean+regr.mse_sd,
+    group=Algorithme,
+    fill=Algorithme),
+    help=paste("Mean plus or minus one standard deviation, over", n.folds, "cross-validation folds."),
+    color=NA,
+    alpha=0.5,
+    data=reg.bench.wide)+
+  geom_line(aes(
+    train_size, regr.mse_mean,
+    group=Algorithme),
+    help=paste("Mean over", n.folds, "cross-validation folds."),
+    color="grey",
+    showSelected="Algorithme",
+    data=reg.bench.wide)+
+  scale_fill_manual(values=algo.info[, structure(color, names=Algorithme)])+
+  scale_color_manual(
+    "Différence,\narbre-meilleur",
+    values=c(
+    significative="black",
+    "pas significative"=NA))+
+  scale_size_manual(
+    "Différence,\narbre-sans caractères",
+    values=c(
+      significative=2,
+      "pas significative"=0))+
+  geom_point(aes(
+    train_size, regr.mse_mean),
+    size=3,
+    shape=21,
+    fill="black",
+    color="black",
+    data=reg.bench.join[Algorithme=="arbre de décision" & Différence=="significative"])+
+  geom_segment(aes(
+    train_size, mean.rpart,
+    size=diff_feat_rpart,
+    xend=train_size, yend=mean.featureless),
+    data=fr(test.featureless)[
+    , diff_feat_rpart := ifelse(
+      p.paired<0.05, "significative", "pas significative"
+    )][])+
+  geom_point(aes(
+    train_size, regr.mse_mean,
+    color=Différence,
+    fill=Algorithme),
+    data=reg.bench.join)+
+  scale_y_log10(
+    "Erreur L2 sur l’ensemble test"
+  )+
+  scale_x_log10(
+    "Nombre d’échantillons dans l’ensemble d’entraînement",
+    breaks=unique(reg.bench.join$train_size))+
+  facet_wrap("Données", scales="free", labeller=label_both)
+print(gg)
+
+png("cv-subsets-small-large-noise-fr-both.png", width=12, height=4, units="in", res=200)
 print(gg)
 dev.off()
