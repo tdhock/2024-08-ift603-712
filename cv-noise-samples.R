@@ -64,12 +64,14 @@ if(require(animint2)){
     facet_grid(signal ~ difficulty, labeller=label_both)
 }
 
-reg_size_cv <- mlr3resampling::ResamplingVariableSizeTrainCV$new()
-n.train.sizes <- 9
-reg_size_cv$param_set$values$train_sizes <- n.train.sizes
+reg_size_cv <- mlr3resampling::ResamplingSameOtherSizesCV$new()
+n.train.sizes <- 8
+reg_size_cv$param_set$values$sizes <- n.train.sizes
+reg_size_cv$param_set$values$ratio <- 563/1000 # 0.01^(1/8)
 reg_size_cv$param_set$values$folds <- n.folds
-reg_size_cv$param_set$values$random_seeds <- 1
 reg_size_cv$instantiate(reg.task.list[[1]])#required for consistent folds across tasks.
+u.train.groups <- unique(reg_size_cv$instance$iteration.dt$n.train.groups)
+rect.x <- log10(u.train.groups)
 
 (reg.learner.list <- list(
   if(requireNamespace("rpart"))mlr3::LearnerRegrRpart$new(),
@@ -86,16 +88,17 @@ if(require(lgr))get_logger("mlr3")$set_threshold("warn")
 (reg.bench.result <- mlr3::benchmark(
   reg.bench.grid, store_models = TRUE))
 
-## TODO why is data.table needed below? is a a bug in mlr3resampling?
-
 reg.bench.score <- nc::capture_first_df(
-  data.table(mlr3resampling::score(reg.bench.result)),
+  mlr3resampling::score(reg.bench.result),
   task_id=list(
     signal=".*?",
     " ",
-    difficulty=".*"))[
-, signal_difficulty_Ntrain := paste(signal,difficulty,train_size),
-][]
+    difficulty=".*"
+  )
+)[, let(
+  train_size = n.train.groups,
+  signal_difficulty_Ntrain = paste(signal,difficulty,n.train.groups)
+)][]
 train_size_vec <- unique(reg.bench.score$train_size)
 
 grid.task <- mlr3::TaskRegr$new("grid", grid.dt, target="y")
@@ -105,7 +108,7 @@ for(score.i in 1:nrow(reg.bench.score)){
   reg.bench.row <- reg.bench.score[score.i]
   task.dt <- data.table(
     reg.bench.row$task[[1]]$data(),
-    reg.bench.row$resampling[[1]]$instance$id.dt)
+    reg.bench.row$resampling[[1]]$instance$fold.dt)
   set.ids <- data.table(
     Set=c("test","train")
   )[
@@ -155,7 +158,6 @@ reg.bench.test <- dcast(
   reg.bench.score[, log10.mse := log10(regr.mse)],
   signal + difficulty + train_size + test.fold + signal_difficulty_Ntrain ~ algorithm,
   value.var=c("log10.mse"))
-rect.x <- seq(1,log10(max.N),l=n.train.sizes)
 seq.diff <- diff(rect.x)[1]/2
 test.proposed <- reg.bench.test[, {
   paired <- t.test(rpart, featureless, alternative="two.sided", paired=TRUE)
@@ -185,7 +187,7 @@ reg.bench.join <- reg.bench.wide[
   on=.NATURAL]
 mid.x <- 10^((max(rect.x)+min(rect.x))/2)
 data.color <- "grey50"
-mse.limits <- c(0.01, 0.045)
+mse.limits <- c(0.01, 0.05)
 mse.breaks <- c(0.01,0.02,0.04)
 Toff <- 1.2
 Tbrk <- c(0,0.5,1)
@@ -228,6 +230,7 @@ viz <- animint(
       train_size, regr.mse_mean,
       group=algorithm),
       help=paste("Mean over", n.folds, "cross-validation folds."),
+      showSelected="algorithm",
       color="grey",
       data=reg.bench.wide)+
     scale_size_manual(values=algo.sizes)+
@@ -320,7 +323,7 @@ viz <- animint(
   details=ggplot()+
     ggtitle("MSE for selected")+
     theme_bw()+
-    theme_animint(width=1000, height=130, colspan=2, last_in_row=TRUE)+
+    theme_animint(width=1000, height=150, colspan=2, last_in_row=TRUE)+
     theme(legend.position="none")+
     scale_y_discrete("Algo")+
     scale_x_log10(
@@ -395,15 +398,11 @@ viz <- animint(
   first=list(
     signal_difficulty_Ntrain="sin easy 1000")
 )
-
-if(FALSE){
-  animint2pages(viz, "2024-09-15-K-fold-CV-train-sizes-regression")
-  animint2pages(viz, "2024-09-16-K-fold-CV-train-sizes-regression")
-  animint2pages(viz, "2026-02-17-K-fold-CV-train-sizes-regression")
-}
 viz
 
 if(FALSE){
-  animint2pages(viz, "2024-09-16-K-fold-CV-train-sizes-regression", chromote_sleep_seconds = 5)
+  animint2pages(viz, "2026-09-16-K-fold-CV-train-sizes-regression", chromote_sleep_seconds = 5)
+  animint2::update_gallery("~/R/gallery-animint/")
+  animint2::update_gallery("~/R/gallery-ml")
 }
 
